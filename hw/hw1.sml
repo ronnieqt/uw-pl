@@ -1,5 +1,13 @@
 (* Calendar Dates *)
 
+(* Notes:
+ * There are no "assignments", there are "variable bindings".
+ * Forget "for/while loops"; you can do the same with recursion instead.
+ * Avoid recomputing a value when possible.
+   Using #1, #2, hd, tl doesn't really cost anything,
+   but other computations should probably be stored if they are repeated.
+ *)
+
 fun is_older(d1: int*int*int, d2: int*int*int) =
     if (#1 d1) <> (#1 d2)
     then (#1 d1) < (#1 d2)
