@@ -78,32 +78,101 @@ exception IllegalMove
 
 (* put your solutions for problem 2 here *)
 
-(* ========== tests ========== *)
+(* ----- (2.a) ----- *)
 
-(* ========== Problem 1: first-name substitutions ========== *)
+(* takes a card and returns its color *)
+fun card_color c =
+    case c of
+          (Spades  , _) => Black
+        | (Clubs   , _) => Black
+        | (Diamonds, _) => Red
+        | (Hearts  , _) => Red
 
-val test1_1 = all_except_option ("string", ["string"]) = SOME []
-val test1_2 = all_except_option ("str2", ["str1","str2","str3"]) = SOME ["str1","str3"]
-val test1_3 = all_except_option ("str4", ["str1","str2","str3"]) = NONE
+(* ----- (2.b) ----- *)
 
-val test2_1 = get_substitutions1 ([["foo"],["there"]], "foo") = []
-val test2_2 = get_substitutions1 ([["Fred","Fredrick"],["Elizabeth","Betty"],["Freddie","Fred","F"]], "Fred") = ["Fredrick","Freddie","F"]
-val test2_3 = get_substitutions1 ([["Fred","Fredrick"],["Elizabeth","Betty"],["Freddie","Fred","F"]], "Fred1") = []
-val test2_4 = get_substitutions1 ([["Fred","Fredrick"],["Jeff","Jeffrey"],["Geoff","Jeff","Jeffrey"]], "Jeff") = ["Jeffrey","Geoff","Jeffrey"]
+(* takes a card and returns its value *)
+fun card_value c =
+    case c of
+          (_, Num x) => x
+        | (_, Ace  ) => 11
+        | _          => 10
 
-val test3_1 = get_substitutions2 ([["foo"],["there"]], "foo") = []
-val test3_2 = get_substitutions2 ([["Fred","Fredrick"],["Elizabeth","Betty"],["Freddie","Fred","F"]], "Fred") = ["Fredrick","Freddie","F"]
-val test3_3 = get_substitutions2 ([["Fred","Fredrick"],["Elizabeth","Betty"],["Freddie","Fred","F"]], "Fred1") = []
-val test3_4 = get_substitutions2 ([["Fred","Fredrick"],["Jeff","Jeffrey"],["Geoff","Jeff","Jeffrey"]], "Jeff") = ["Jeffrey","Geoff","Jeffrey"]
+(* ----- (2.c) ----- *)
 
-val test4_1 = similar_names ([["Fred","Fredrick"],["Elizabeth","Betty"],["Freddie","Fred","F"]], {first="Fred", middle="W", last="Smith"}) =
-	    [{first="Fred", last="Smith", middle="W"}, {first="Fredrick", last="Smith", middle="W"},
-	     {first="Freddie", last="Smith", middle="W"}, {first="F", last="Smith", middle="W"}]
-val test4_2 = similar_names ([["Fred","Fredrick"],["Elizabeth","Betty"],["Freddie","Fred","F"]], {first="Fred1", middle="W", last="Smith"}) =
-        [{first="Fred1", middle="W", last="Smith"}]
-val test4_3 = similar_names ([["Fred","Fredrick"],["Elizabeth","Betty"],["Freddie","Fred","F"]], {first="Elizabeth", middle="A", last="Wong"}) =
-        [{first="Elizabeth", middle="A", last="Wong"}, {first="Betty", middle="A", last="Wong"}]
+(* returns a list that has all the elements of cs except c
+   if c is not in the list, raise the exception e *)
+fun remove_card (cs, c, e) =
+    let
+        fun aux (cs_prev, cs_next, c, e) =
+            case cs_next of
+                  [] => raise e
+                | (c'::cs') => if c=c'
+                               then cs_prev @ cs'
+                               else aux (cs_prev @ [c'], cs', c, e)
+    in
+        aux ([], cs, c, e)
+    end
 
-(* ========== Problem 2: solitaire card game ========== *)
+(* ----- (2.d) ----- *)
 
+(* takes a list of cards and returns true if all the cards in the list are the same color *)
+fun all_same_color cs =
+    case cs of
+          [] => true
+        | _::[] => true
+        | c1::(c2::rest) => card_color(c1) = card_color(c2) andalso all_same_color (c2::rest)
 
+(* ----- (2.e) ----- *)
+
+(* takes a list of cards and returns the sum of their values *)
+fun sum_cards cs =
+    let
+        fun aux (cs, acc) =
+            case cs of
+                  [] => acc
+                | c::cs' => aux(cs', acc + card_value c)
+    in
+        aux (cs, 0)
+    end
+
+(* ----- (2.f) ----- *)
+
+(* sum of the values of the held-cards.
+   if sum is greater than goal, the preliminary score is three times (sum−goal),
+   else the preliminary score is (goal − sum). *)
+(* the score is the preliminary score unless all the held-cards are the same color,
+   in which case the score is the preliminary score divided by 2 *)
+fun score (cs,g) =
+    let
+        val s = sum_cards cs;
+        val ps = if s>g then 3*(s-g) else (g-s)
+    in
+        if all_same_color (cs) then (ps div 2) else ps
+    end
+
+(* ----- (2.g) ----- *)
+
+(* runs a game and returns the score at the end of the game
+   cs : card list
+   hs : held-card list
+   ms : move list
+   g  : goal *)
+fun officiate (cs, ms, g) =
+    let
+        fun step (cs, hs, ms, g) =
+            case ms of
+                  [] => score (hs,g)
+                | (m::ms') => case m of
+                                    Discard x => step (cs, remove_card (hs,x,IllegalMove), ms', g)
+                                  | Draw => case cs of
+                                                  [] => score (hs,g)
+                                                | (c::cs') => let
+                                                                  val hs_new = hs @ [c]
+                                                              in
+                                                                  if sum_cards (hs_new) > g
+                                                                  then score (hs_new,g)
+                                                                  else step (cs', hs_new, ms', g)
+                                                              end
+    in
+        step (cs, [], ms, g)
+    end
