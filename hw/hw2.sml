@@ -14,7 +14,7 @@ fun same_string(s1 : string, s2 : string) =
 
 (* if the string (x) is not in the list (ys), return NONE;
    else return SOME lst where lst is identical to ys except the string is not in it. *)
-fun all_except_option (x,ys) =
+(* fun all_except_option (x,ys) =
     let
         fun aux (x,ys_prev,ys_rest) =
             case ys_rest of
@@ -24,7 +24,16 @@ fun all_except_option (x,ys) =
                               else aux (x, ys_prev @ [y], ys')
     in
         aux (x,[],ys)
-    end
+    end *)
+
+fun all_except_option (x,ys) =
+    case ys of
+          [] => NONE
+        | y::ys' => if same_string (x,y)
+                    then SOME ys'
+                    else case all_except_option (x,ys') of
+                          NONE => NONE
+                        | SOME z => SOME (y :: z)
 
 (* ----- (1.b) ----- *)
 
@@ -101,7 +110,7 @@ fun card_value c =
 
 (* returns a list that has all the elements of cs except c
    if c is not in the list, raise the exception e *)
-fun remove_card (cs, c, e) =
+(* fun remove_card (cs, c, e) =
     let
         fun aux (cs_prev, cs_next, c, e) =
             case cs_next of
@@ -111,7 +120,11 @@ fun remove_card (cs, c, e) =
                                else aux (cs_prev @ [c'], cs', c, e)
     in
         aux ([], cs, c, e)
-    end
+    end *)
+fun remove_card (cs, c, e) =
+    case cs of
+          [] => raise e
+        | c'::cs' => if c=c' then cs' else c'::remove_card (cs', c, e)
 
 (* ----- (2.d) ----- *)
 
