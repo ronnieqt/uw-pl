@@ -170,7 +170,7 @@ fun score (cs,g) =
    hs : held-card list
    ms : move list
    g  : goal *)
-fun officiate (cs, ms, g) =
+(* fun officiate (cs, ms, g) =
     let
         fun step (cs, hs, ms, g) =
             case ms of
@@ -186,6 +186,25 @@ fun officiate (cs, ms, g) =
                                                                   then score (hs_new,g)
                                                                   else step (cs', hs_new, ms', g)
                                                               end
+    in
+        step (cs, [], ms, g)
+    end *)
+
+fun officiate (cs, ms, g) =
+    let
+        fun step (cs, hs, ms, g) =
+            case ms of
+                  [] => score (hs,g)
+                | (Discard x)::ms' => step (cs, remove_card (hs,x,IllegalMove), ms', g)
+                | (Draw)::ms' => case cs of
+                                       [] => score (hs,g)
+                                     | (c::cs') => let
+                                                       val hs_new = c::hs
+                                                   in
+                                                       if sum_cards (hs_new) > g
+                                                       then score (hs_new,g)
+                                                       else step (cs', hs_new, ms', g)
+                                                   end
     in
         step (cs, [], ms, g)
     end
