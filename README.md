@@ -1,2 +1,3 @@
 # uw-pl
-UW Programming Languages
+
+UW Programming Languages (in ML, Racket, and Ruby)
