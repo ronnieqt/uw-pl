@@ -24,8 +24,8 @@ fun longest_string2 xs =
 fun longest_string_helper f xs =
     List.foldl (fn (acc,x) => if f (String.size acc, String.size x) then x else acc) "" xs
 
-val longest_string3 = longest_string_helper (fn (x,y) => x <= y)
-val longest_string4 = longest_string_helper (fn (x,y) => x < y)
+val longest_string3 = longest_string_helper (op <=)
+val longest_string4 = longest_string_helper (op <)
 
 (* ========== (5) ========== *)
 
@@ -153,3 +153,6 @@ datatype typ =
 	    | IntT
 	    | TupleT of typ list
 	    | Datatype of string
+
+fun typecheck_patterns fs ps =
+    1
