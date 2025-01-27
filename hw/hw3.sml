@@ -6,26 +6,23 @@ exception NoAnswer
 
 (* ========== (1) ========== *)
 
-fun only_capitals xs =
-    List.filter (fn x => Char.isUpper (String.sub (x, 0))) xs
+val only_capitals = List.filter (fn x => Char.isUpper (String.sub (x, 0)))
 
 (* ========== (2) ========== *)
 
-fun longest_string1 xs =
-    List.foldl (fn (acc,x) => if String.size acc <= String.size x then x else acc) "" xs
+val longest_string1 = List.foldl (fn (x,acc) => if String.size x > String.size acc then x else acc) ""
 
 (* ========== (3) ========== *)
 
-fun longest_string2 xs =
-    List.foldl (fn (acc,x) => if String.size acc < String.size x then x else acc) "" xs
+val longest_string2 = List.foldl (fn (x,acc) => if String.size x >= String.size acc then x else acc) ""
 
 (* ========== (4) ========== *)
 
 fun longest_string_helper f xs =
-    List.foldl (fn (acc,x) => if f (String.size acc, String.size x) then x else acc) "" xs
+    List.foldl (fn (x,acc) => if f (String.size x, String.size acc) then x else acc) "" xs
 
-val longest_string3 = longest_string_helper (op <=)
-val longest_string4 = longest_string_helper (op <)
+val longest_string3 = longest_string_helper (op >)
+val longest_string4 = longest_string_helper (op >=)
 
 (* ========== (5) ========== *)
 
@@ -88,11 +85,11 @@ fun g f1 f2 p =
 
 (* ---------- (9.a) ---------- *)
 
-val count_wildcards = g (fn () => 1) (fn x => 0)
+val count_wildcards = g (fn () => 1) (fn _ => 0)
 
 (* ---------- (9.b) ---------- *)
 
-val count_wild_and_variable_lengths = g (fn () => 1) (fn x => String.size x)
+val count_wild_and_variable_lengths = g (fn () => 1) String.size
 
 (* ---------- (9.c) ---------- *)
 
@@ -131,9 +128,15 @@ fun match (v,p) =
           (_                , Wildcard          ) => SOME []
         | (v                , Variable(s)       ) => SOME [(s,v)]
         | (Unit             , UnitP             ) => SOME []
-        | (Const(x)         , ConstP(y)         ) => if x=y then SOME [] else NONE
-        | (Tuple(vs)        , TupleP(ps)        ) => all_answers match (ListPair.zip (vs,ps))
-        | (Constructor(s1,v), ConstructorP(s2,p)) => if s1=s2 then match (v,p) else NONE
+        | (Const(x)         , ConstP(y)         ) => if x=y
+                                                     then SOME []
+                                                     else NONE
+        | (Tuple(vs)        , TupleP(ps)        ) => if List.length(vs) = List.length(ps)
+                                                     then all_answers match (ListPair.zip (vs,ps))
+                                                     else NONE
+        | (Constructor(s1,v), ConstructorP(s2,p)) => if s1=s2
+                                                     then match (v,p)
+                                                     else NONE
         | _                                       => NONE
 
 (* ========== (12) ========== *)
@@ -148,11 +151,18 @@ fun first_match v ps =
 (**** for the challenge problem only ****)
 
 datatype typ =
-          Anything
-	    | UnitT
-	    | IntT
-	    | TupleT of typ list
-	    | Datatype of string
+          Anything             (* any type of value is okay *)
+	    | UnitT                (* type for Unit *)
+	    | IntT                 (* type for integers *)
+	    | TupleT of typ list   (* tuple types *)
+	    | Datatype of string   (* some named datatype *)
 
-fun typecheck_patterns fs ps =
-    1
+(* dts: (string * string * typ) list = (ctor_name, datatype_name, value_type) list *)
+(* ps : pattern list *)
+(* type-check a pattern list (ps)
+    to see if there exists some typ (t) that all the patterns in the list can have *)
+fun typecheck_patterns dts ps =
+    NONE
+
+val test13_1 = typecheck_patterns [] [ConstP(10), Variable("a")] = SOME IntT
+val test13_2 = typecheck_patterns [] [ConstP(10), ConstructorP("SOME",Variable("x")), Variable("a")] = NONE

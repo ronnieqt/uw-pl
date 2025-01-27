@@ -87,6 +87,8 @@ val test11_8 = match (Constructor("ctor",Tuple([Const(1),Unit,Tuple([Const(2),Co
 val test11_9 = match (Constructor("ctor",Tuple([Const(1),Unit,Tuple([Const(2),Const(3)])])),
                       ConstructorP("ctor1",TupleP([Variable("a"),Wildcard,TupleP([Variable("b"),Variable("c")])])))
                       = NONE
+val test11_10 = match (Tuple[Const 17,Unit,Const 4,Constructor ("egg",Const 4),Constructor ("egg",Constructor ("egg",Const 4))],
+                       TupleP[Wildcard,Wildcard]) = NONE
 
 val test12_1 = first_match Unit [UnitP] = SOME []
 val test12_2 = first_match (Const(2)) [UnitP,ConstP(1),ConstP(2)] = SOME []
