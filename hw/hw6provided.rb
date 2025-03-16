@@ -77,18 +77,20 @@ class Piece
   end
   
   # class array holding all the pieces and their rotations
-  All_Pieces = [[[[0, 0], [1, 0], [0, 1], [1, 1]]],  # square (only needs one)
-               rotations([[0, 0], [-1, 0], [1, 0], [0, -1]]), # T
-               [[[0, 0], [-1, 0], [1, 0], [2, 0]], # long (only needs two)
-               [[0, 0], [0, -1], [0, 1], [0, 2]]],
-               rotations([[0, 0], [0, -1], [0, 1], [1, 1]]), # L
-               rotations([[0, 0], [0, -1], [0, 1], [-1, 1]]), # inverted L
-               rotations([[0, 0], [-1, 0], [0, -1], [1, -1]]), # S
-               rotations([[0, 0], [1, 0], [0, -1], [-1, -1]])] # Z
+  All_Pieces = [
+    [[[0, 0], [1, 0], [0, 1], [1, 1]]],  # square (only needs one)
+    rotations([[0, 0], [-1, 0], [1, 0], [0, -1]]), # T
+    [[[0, 0], [-1, 0], [1, 0], [2, 0]], # long (only needs two)
+     [[0, 0], [0, -1], [0, 1], [0, 2]]],
+    rotations([[0, 0], [0, -1], [0, 1], [1, 1]]), # L
+    rotations([[0, 0], [0, -1], [0, 1], [-1, 1]]), # inverted L
+    rotations([[0, 0], [-1, 0], [0, -1], [1, -1]]), # S
+    rotations([[0, 0], [1, 0], [0, -1], [-1, -1]])  # Z
+  ] 
 
   # class array 
-  All_Colors = ['DarkGreen', 'dark blue', 'dark red', 'gold2', 'Purple3', 
-               'OrangeRed2', 'LightSkyBlue']  
+  All_Colors = ['DarkGreen', 'dark blue', 'dark red', 'gold2', 
+                'Purple3', 'OrangeRed2', 'LightSkyBlue']  
 end
 
 
@@ -210,10 +212,9 @@ class Board
   def store_current
     locations = @current_block.current_rotation
     displacement = @current_block.position
-    (0..3).each{|index| 
+    (0..3).each { |index| 
       current = locations[index];
-      @grid[current[1]+displacement[1]][current[0]+displacement[0]] = 
-      @current_pos[index]
+      @grid[current[1]+displacement[1]][current[0]+displacement[0]] = @current_pos[index]
     }
     remove_filled
     @delay = [@delay - 2, 80].max
@@ -398,12 +399,12 @@ class Tetris
     size = @board.block_size
     blocks = piece.current_rotation
     start = piece.position
-    blocks.map{|block| 
-    TetrisRect.new(@canvas, start[0]*size + block[0]*size + 3, 
-                       start[1]*size + block[1]*size,
-                       start[0]*size + size + block[0]*size + 3, 
-                       start[1]*size + size + block[1]*size, 
-                       piece.color)}
+    blocks.map{ |block| 
+      TetrisRect.new(@canvas, start[0]*size + block[0]*size + 3, 
+                        start[1]*size + block[1]*size,
+                        start[0]*size + size + block[0]*size + 3, 
+                        start[1]*size + size + block[1]*size, 
+                        piece.color)}
   end
 end
 
