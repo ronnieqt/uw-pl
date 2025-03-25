@@ -79,12 +79,44 @@ class Add(Expr):
         return self.e1.has_zero() or self.e2.has_zero()
 
 # ============================================================
+# Abstract Method and High-Order Function
+
+class NTimesBase(ABC):
+
+    def __init__(self, n: int):
+        assert n >= 0
+        self.n = n
+
+    @abstractmethod
+    def f(self, x: int) -> int:
+        pass
+
+    def run(self, x: int) -> int:
+        for _ in range(self.n):
+            x = self.f(x)
+        return x
+
+class IncrementNTimes(NTimesBase):
+
+    def f(self, x: int) -> int:
+        return x + 1
+
+class DoubleNTimes(NTimesBase):
+
+    def f(self, x: int) -> int:
+        return 2*x
+
+# ============================================================
 
 def _main():
+    print("===== Part 1 =====")
     e = Add(Add(Int(3),Negate(Int(2))),Int(0))
     print(f"Expression : {e.to_string()}")
     print(f"     Value : {e.eval().to_int()}")
     print(f" Has Zero? : {e.has_zero()}")
+    print("===== Part 2 =====")
+    print(f"IncrementNTimes : {IncrementNTimes(10).run(5)}")
+    print(f"DoubleNTimes    : {DoubleNTimes(3).run(2)}")
 
 if __name__ == "__main__":
     _main()
