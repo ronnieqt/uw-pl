@@ -8,8 +8,8 @@ class Base
 public:
     virtual ~Base() {};
     virtual void act(Base& other) = 0;
-    virtual void act_from(ChildA& other) = 0;
-    virtual void act_from(ChildB& other) = 0;
+    virtual void act_from(ChildA& src) = 0;
+    virtual void act_from(ChildB& src) = 0;
 };
 
 class ChildA: public Base
@@ -21,11 +21,11 @@ public:
         std::cout << "A's act method called" << std::endl;
         other.act_from(*this);
     }
-    void act_from(ChildA& other) override
+    void act_from(ChildA& src) override
     {
         std::cout << "A act on A" << std::endl;
     }
-    void act_from(ChildB& other) override
+    void act_from(ChildB& src) override
     {
         std::cout << "B act on A" << std::endl;
     }
@@ -39,11 +39,11 @@ public:
         std::cout << "B's act method called" << std::endl;
         other.act_from(*this);
     }
-    void act_from(ChildA& other) override
+    void act_from(ChildA& src) override
     {
         std::cout << "A act on B" << std::endl;
     }
-    void act_from(ChildB& other) override
+    void act_from(ChildB& src) override
     {
         std::cout << "B act on B" << std::endl;
     }
