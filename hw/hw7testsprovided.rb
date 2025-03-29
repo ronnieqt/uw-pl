@@ -168,5 +168,92 @@ if not (s1.x1 == TWO and s1.y1 == THREE and s1.x2 == SIX and s1.y2 == 9)
 	puts "Shift should shift e by dx and dy"
 end
 
+# ============================================================
 
+def test_preprocess_prog
+  # values
+  np = NoPoints.new()
+  puts np
+  puts np.preprocess_prog
+  puts Point.new(1,2)
+  puts Line.new(3,5)
+  puts VerticalLine.new(10)
+  puts LineSegment.new(1,2,3,4).preprocess_prog
+  puts LineSegment.new(3.2,4.1,3.2,4.1).preprocess_prog
+  puts LineSegment.new(1.1,3.3,1.1,2.2).preprocess_prog
+  puts LineSegment.new(3,1,2,4).preprocess_prog
+  # expressions
+  l1 = LineSegment.new(1,2,3,4)
+  l2 = LineSegment.new(3,1,2,4)
+  puts Intersect.new(l1,l2)
+  puts Intersect.new(l1,l2).preprocess_prog
+  puts Let.new("x", l2, Var.new("x")).preprocess_prog
+  puts Shift.new(-1, 1, l2).preprocess_prog
+end
 
+def test_eval_prog
+  puts NoPoints.new().preprocess_prog.eval_prog []
+  puts LineSegment.new(3.2,4.1,3.2,4.1).preprocess_prog.eval_prog []
+  puts Let.new("p",Point.new(1,2),Var.new("p")).preprocess_prog.eval_prog []
+  puts Let.new("p",Point.new(3,4),Shift.new(-1,1,Var.new("p"))).preprocess_prog.eval_prog []
+  puts Let.new("l",LineSegment.new(3,1,2,4),Shift.new(5,10,Var.new("l"))).preprocess_prog.eval_prog []
+end
+
+def test_shift
+  puts Let.new("x",Point.new(1,2),Shift.new(-1,1,Var.new("x"))).preprocess_prog.eval_prog [["x",Point.new(1,1)]]
+  puts Shift.new(1,1,Line.new(1,2)).preprocess_prog.eval_prog []
+  puts Shift.new(1,2,VerticalLine.new(3)).preprocess_prog.eval_prog []
+  puts Shift.new(1.5,2,LineSegment.new(3,4,5,6)).preprocess_prog.eval_prog []
+end
+
+def test_intersect
+  puts "====== Point ======"
+  puts Intersect.new(Point.new(1,2),Point.new(1,2)).preprocess_prog.eval_prog []
+  puts Intersect.new(Point.new(1,2),Point.new(1,3)).preprocess_prog.eval_prog []
+  puts Intersect.new(Point.new(1,2),Line.new(1,1)).preprocess_prog.eval_prog []
+  puts Intersect.new(Point.new(1,1),Line.new(1,1)).preprocess_prog.eval_prog []
+  puts Intersect.new(Point.new(1,2),VerticalLine.new(1)).preprocess_prog.eval_prog []
+  puts Intersect.new(Point.new(1,2),VerticalLine.new(2)).preprocess_prog.eval_prog []
+  puts "====== Line ======"
+  puts Intersect.new(Line.new(1,1),Point.new(1,2)).preprocess_prog.eval_prog []
+  puts Intersect.new(Line.new(1,1),Line.new(1,1)).preprocess_prog.eval_prog []
+  puts Intersect.new(Line.new(-1,0),Line.new(1,1)).preprocess_prog.eval_prog []
+  puts Intersect.new(Line.new(2,0),Line.new(1,1)).preprocess_prog.eval_prog []
+  puts Intersect.new(Line.new(1,2),Line.new(1,1)).preprocess_prog.eval_prog []
+  puts Intersect.new(Line.new(2,3),VerticalLine.new(2)).preprocess_prog.eval_prog []
+  puts "====== VerticalLine ======"
+  puts Intersect.new(VerticalLine.new(2),Point.new(2,3)).preprocess_prog.eval_prog []
+  puts Intersect.new(VerticalLine.new(2),Line.new(2,3)).preprocess_prog.eval_prog []
+  puts Intersect.new(VerticalLine.new(2),VerticalLine.new(2)).preprocess_prog.eval_prog []
+  puts Intersect.new(VerticalLine.new(2),VerticalLine.new(3)).preprocess_prog.eval_prog []
+  puts "====== LineSegment ======"
+  puts Intersect.new(LineSegment.new(1,1,3,3),Point.new(2,2)).preprocess_prog.eval_prog []
+  puts Intersect.new(LineSegment.new(1,1,3,3),Point.new(2,2.1)).preprocess_prog.eval_prog []
+  puts Intersect.new(LineSegment.new(1,2,3,4),Line.new(1,1)).preprocess_prog.eval_prog []
+  puts Intersect.new(LineSegment.new(1,2,3,4),Line.new(1,2)).preprocess_prog.eval_prog []
+  puts Intersect.new(LineSegment.new(1,2,3,4),Line.new(2,0)).preprocess_prog.eval_prog []
+  puts Intersect.new(LineSegment.new(1,2,1,4),VerticalLine.new(1)).preprocess_prog.eval_prog []
+  puts Intersect.new(LineSegment.new(1,2,1,4),VerticalLine.new(1.5)).preprocess_prog.eval_prog []
+  puts Intersect.new(LineSegment.new(1,2,3,4),VerticalLine.new(2.0)).preprocess_prog.eval_prog []
+  puts Intersect.new(LineSegment.new(1,3,1,2),LineSegment.new(1,0,1,2)).preprocess_prog.eval_prog []
+  puts Intersect.new(LineSegment.new(1,3,1,2),LineSegment.new(1,0,1,1)).preprocess_prog.eval_prog []
+  puts Intersect.new(LineSegment.new(1,4,1,1),LineSegment.new(1,2,1,3)).preprocess_prog.eval_prog []
+  puts Intersect.new(LineSegment.new(1,3,1,1),LineSegment.new(1,2,1,4)).preprocess_prog.eval_prog []
+  puts Intersect.new(LineSegment.new(1,1,3,3),LineSegment.new(0,0,1,1)).preprocess_prog.eval_prog []
+  puts Intersect.new(LineSegment.new(2,2,3,3),LineSegment.new(0,0,1,1)).preprocess_prog.eval_prog []
+  puts Intersect.new(LineSegment.new(1,1,3,3),LineSegment.new(0,0,2,2)).preprocess_prog.eval_prog []
+  puts Intersect.new(LineSegment.new(-1,-1,3,3),LineSegment.new(0,0,2,2)).preprocess_prog.eval_prog []
+  puts Intersect.new(LineSegment.new(0,0,2,2),LineSegment.new(0,2,1,0)).preprocess_prog.eval_prog []
+  puts Intersect.new(LineSegment.new(0,0,1,1),LineSegment.new(0,1,1,2)).preprocess_prog.eval_prog []
+end
+
+def run_tests
+  test_preprocess_prog
+  test_eval_prog
+  test_shift
+  test_intersect
+end
+
+# run_tests
+
+# ============================================================

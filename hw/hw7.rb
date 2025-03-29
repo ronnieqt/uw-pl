@@ -23,12 +23,9 @@
 #       object construction
 
 # Note: For eval_prog, represent environments as arrays of 2-element arrays
-# as described in the assignment
+#       as described in the assignment
 
-class GeometryExpression  
-  # do *not* change this class definition
-  Epsilon = 0.00001
-end
+# ============================================================
 
 class GeometryValue 
   # do *not* change methods in this class definition
@@ -54,6 +51,16 @@ class GeometryValue
   end
 
   public
+  # all values evaluate to self
+  def eval_prog env 
+    self
+  end
+
+  # no pre-processing to do for most values (except LineSegment)
+  def preprocess_prog
+    self 
+  end
+
   # we put this in this class so all subclasses can inherit it:
   # the intersection of self with a NoPoints is a NoPoints object
   def intersectNoPoints np
@@ -70,6 +77,8 @@ class GeometryValue
   end
 end
 
+# ------------------------------------------------------------
+
 class NoPoints < GeometryValue
   # do *not* change this class definition: everything is done for you
   # (although this is the easiest class, it shows what methods every subclass
@@ -77,12 +86,6 @@ class NoPoints < GeometryValue
   # However, you *may* move methods from here to a superclass if you wish to
 
   # Note: no initialize method only because there is nothing it needs to do
-  def eval_prog env 
-    self # all values evaluate to self
-  end
-  def preprocess_prog
-    self # no pre-processing to do here
-  end
   def shift(dx,dy)
     self # shifting no-points is no-points
   end
@@ -106,6 +109,7 @@ class NoPoints < GeometryValue
   end
 end
 
+# ------------------------------------------------------------
 
 class Point < GeometryValue
   # *add* methods to this class -- do *not* change given code and do not
@@ -118,7 +122,60 @@ class Point < GeometryValue
     @x = x
     @y = y
   end
+
+  def shift(dx,dy)
+    Point.new(x+dx,y+dy)
+  end
+
+  def intersect other
+    other.intersectPoint self
+  end
+
+  def intersectPoint p
+    if real_close_point(x,y,p.x,p.y)
+      self
+    else
+      NoPoints.new()
+    end
+  end
+
+  def intersectLine line
+    if real_close(y,line.m*x+line.b)
+      self
+    else
+      NoPoints.new()
+    end
+  end
+
+  def intersectVerticalLine vline
+    if real_close(x,vline.x)
+      self
+    else
+      NoPoints.new()
+    end
+  end
+
+  def intersectWithSegmentAsLineResult seg
+    if inbetween(x,seg.x1,seg.x2) && inbetween(y,seg.y1,seg.y2)
+      self
+    else
+      NoPoints.new()
+    end
+  end
+
+  def to_s
+    "Point(x="+x.to_s+",y="+y.to_s+")"
+  end
+
+  private
+  # a helper method to check if a value (v) is within [end1,end2] or [end2,end1]
+  def inbetween(v,end1,end2)
+    ((end1 - GeometryExpression::Epsilon <= v) && (v <= end2 + GeometryExpression::Epsilon)) || 
+    ((end2 - GeometryExpression::Epsilon <= v) && (v <= end1 + GeometryExpression::Epsilon))
+  end
 end
+
+# ------------------------------------------------------------
 
 class Line < GeometryValue
   # *add* methods to this class -- do *not* change given code and do not
@@ -128,7 +185,47 @@ class Line < GeometryValue
     @m = m
     @b = b
   end
+
+  def shift(dx,dy)
+    Line.new(m,b+dy-m*dx)
+  end
+
+  def intersect other
+    other.intersectLine self
+  end
+
+  def intersectPoint p
+    p.intersectLine self
+  end
+
+  def intersectLine line
+    if real_close(m,line.m)
+      if real_close(b,line.b)
+        self  # same line
+      else
+        NoPoints.new()  # parallel lines do not intersect
+      end
+    else  # one-point intersection
+      x = (line.b - b).to_f / (m - line.m)
+      y = m * x + b
+      Point.new(x,y)
+    end
+  end
+
+  def intersectVerticalLine vline
+    Point.new(vline.x, m*vline.x+b)
+  end
+
+  def intersectWithSegmentAsLineResult seg
+    seg  # so segment seg in on line represented by self
+  end
+
+  def to_s
+    "Line(m="+m.to_s+",b="+b.to_s+")"
+  end
 end
+
+# ------------------------------------------------------------
 
 class VerticalLine < GeometryValue
   # *add* methods to this class -- do *not* change given code and do not
@@ -137,7 +234,41 @@ class VerticalLine < GeometryValue
   def initialize x
     @x = x
   end
+
+  def shift(dx,dy)
+    VerticalLine.new(x+dx)
+  end
+
+  def intersect other
+    other.intersectVerticalLine self
+  end
+
+  def intersectPoint p
+    p.intersectVerticalLine self
+  end
+
+  def intersectLine line
+    line.intersectVerticalLine self
+  end
+
+  def intersectVerticalLine vline
+    if real_close(x,vline.x)
+      self
+    else
+      NoPoints.new()
+    end
+  end
+
+  def intersectWithSegmentAsLineResult seg
+    seg  # so segment seg in on vertical line represented by self
+  end
+
+  def to_s
+    "VerticalLine(x="+x.to_s+")"
+  end
 end
+
+# ------------------------------------------------------------
 
 class LineSegment < GeometryValue
   # *add* methods to this class -- do *not* change given code and do not
@@ -152,7 +283,96 @@ class LineSegment < GeometryValue
     @x2 = x2
     @y2 = y2
   end
+
+  def preprocess_prog
+    if real_close_point(x1,y1,x2,y2)
+      Point.new(x1,y1)
+    elsif real_close(x1,x2)
+      if y1 < y2
+        LineSegment.new(x1,y1,x1,y2)
+      else
+        LineSegment.new(x1,y2,x1,y1)
+      end
+    elsif x1 > x2 
+      LineSegment.new(x2,y2,x1,y1)
+    else
+      self
+    end
+  end
+
+  def shift(dx,dy)
+    LineSegment.new(x1+dx,y1+dy,x2+dx,y2+dy)
+  end
+
+  def intersect other
+    other.intersectLineSegment self
+  end
+
+  def intersectPoint p
+    p.intersectLineSegment self
+  end
+
+  def intersectLine line
+    line.intersectLineSegment self
+  end
+
+  def intersectVerticalLine vline
+    vline.intersectLineSegment self
+  end
+
+  def intersectWithSegmentAsLineResult seg
+    if real_close(x1,x2)  # the segments are on a vertical line
+      # let segment_a start at or below start of segment_b
+      if y1 < seg.y1
+        seg_a = self
+        seg_b = seg
+      else
+        seg_a = seg
+        seg_b = self
+      end
+      if real_close(seg_a.y2, seg_b.y1)
+        Point.new(seg_a.x2,seg_a.y2)  # just touching
+      elsif seg_a.y2 < seg_b.y1  # disjoint
+        NoPoints.new()
+      elsif seg_a.y2 > seg_b.y2  # b inside a
+        seg_b
+      else  # overlapping
+        LineSegment.new(seg_b.x1,seg_b.y1,seg_a.x2,seg_a.y2)
+      end
+    else  # the segments are on a (non-vertical) line
+      # let segment_a start at or to the left of start of segment_b
+      if x1 < seg.x1
+        seg_a = self
+        seg_b = seg
+      else
+        seg_a = seg
+        seg_b = self
+      end
+      if real_close(seg_a.x2, seg_b.x1)  # just touching
+        Point.new(seg_a.x2, seg_a.y2)
+      elsif seg_a.x2 < seg_b.x1  # disjoint
+        NoPoints.new()
+      elsif seg_a.x2 > seg_b.x2  # b inside a
+        seg_b
+      else  # overlapping
+        LineSegment.new(seg_b.x1,seg_b.y1,seg_a.x2,seg_a.y2)
+      end
+    end
+  end
+
+  def to_s
+    "LineSegment(x1="+x1.to_s+",y1="+y1.to_s+";x2="+x2.to_s+",y2="+y2.to_s+")"
+  end
 end
+
+# ============================================================
+
+class GeometryExpression  
+  # do *not* change this class definition
+  Epsilon = 0.00001
+end
+
+# ------------------------------------------------------------
 
 # Note: there is no need for getter methods for the non-value classes
 
@@ -163,7 +383,21 @@ class Intersect < GeometryExpression
     @e1 = e1
     @e2 = e2
   end
+
+  def eval_prog env 
+    @e1.eval_prog(env).intersect(@e2.eval_prog(env))
+  end
+
+  def preprocess_prog
+    Intersect.new(@e1.preprocess_prog, @e2.preprocess_prog)
+  end
+
+  def to_s
+    "Intersect("+@e1.to_s+","+@e2.to_s+")"
+  end
 end
+
+# ------------------------------------------------------------
 
 class Let < GeometryExpression
   # *add* methods to this class -- do *not* change given code and do not
@@ -174,7 +408,23 @@ class Let < GeometryExpression
     @e1 = e1
     @e2 = e2
   end
+
+  # The first subexpression is evaluated and the result bound to a variable 
+  # that is added to the environment for evaluating the second subexpression.
+  def eval_prog env 
+    @e2.eval_prog([[@s,@e1.eval_prog(env)]]+env)
+  end
+
+  def preprocess_prog
+    Let.new(@s, @e1.preprocess_prog, @e2.preprocess_prog)
+  end
+
+  def to_s
+    "Let("+@s.to_s+","+@e1.to_s+","+@e2.to_s+")"
+  end
 end
+
+# ------------------------------------------------------------
 
 class Var < GeometryExpression
   # *add* methods to this class -- do *not* change given code and do not
@@ -182,12 +432,23 @@ class Var < GeometryExpression
   def initialize s
     @s = s
   end
+
   def eval_prog env # remember: do not change this method
     pr = env.assoc @s
     raise "undefined variable" if pr.nil?
     pr[1]
   end
+
+  def preprocess_prog
+    self
+  end
+
+  def to_s
+    "Var("+@s.to_s+")"
+  end
 end
+
+# ------------------------------------------------------------
 
 class Shift < GeometryExpression
   # *add* methods to this class -- do *not* change given code and do not
@@ -197,4 +458,20 @@ class Shift < GeometryExpression
     @dy = dy
     @e = e
   end
+
+  # Every subclass of GeometryValue should have a shift method that 
+  # takes two arguments dx and dy and returns the result of shifting self by dx and dy.
+  def eval_prog env 
+    @e.eval_prog(env).shift(@dx,@dy)
+  end
+
+  def preprocess_prog
+    Shift.new(@dx,@dy,@e.preprocess_prog)
+  end
+
+  def to_s
+    "Shift("+@e.to_s+" by ("+@dx.to_s+","+@dy.to_s+"))"
+  end
 end
+
+# ============================================================
