@@ -4,7 +4,7 @@
 
 (* These tests do NOT cover all the various cases, especially for intersection *)
 
-use "hw7.sml";
+use "hw/hw7.sml";
 
 (* Must implement preprocess_prog and Shift before running these tests *)
 
@@ -16,8 +16,8 @@ let
 	val Point(c,d) = Point(3.2,4.1)
 in
 	if real_equal(a,c) andalso real_equal(b,d)
-	then (print "preprocess converts a LineSegment to a Point successfully\n")
-	else (print "preprocess does not convert a LineSegment to a Point succesfully\n")
+	then (print "OK - preprocess converts a LineSegment to a Point successfully\n")
+	else (print "ERROR - preprocess does not convert a LineSegment to a Point succesfully\n")
 end;
 
 let 
@@ -25,8 +25,8 @@ let
 	val LineSegment(e,f,g,h) = LineSegment(~3.2,~4.1,3.2,4.1)
 in
 	if real_equal(a,e) andalso real_equal(b,f) andalso real_equal(c,g) andalso real_equal(d,h)
-	then (print "preprocess flips an improper LineSegment successfully\n")
-	else (print "preprocess does not flip an improper LineSegment successfully\n")
+	then (print "OK - preprocess flips an improper LineSegment successfully\n")
+	else (print "ERROR - preprocess does not flip an improper LineSegment successfully\n")
 end;
 
 (* eval_prog tests with Shift*)
@@ -35,8 +35,8 @@ let
 	val Point(c,d) = Point(7.0,8.0) 
 in
 	if real_equal(a,c) andalso real_equal(b,d)
-	then (print "eval_prog with empty environment worked\n")
-	else (print "eval_prog with empty environment is not working properly\n")
+	then (print "OK - eval_prog with empty environment worked\n")
+	else (print "ERROR - eval_prog with empty environment is not working properly\n")
 end;
 
 (* Using a Var *)
@@ -45,8 +45,8 @@ let
 	val Point(c,d) = Point(7.0,8.0) 
 in
 	if real_equal(a,c) andalso real_equal(b,d)
-	then (print "eval_prog with 'a' in environment is working properly\n")
-	else (print "eval_prog with 'a' in environment is not working properly\n")
+	then (print "OK - eval_prog with 'a' in environment is working properly\n")
+	else (print "ERROR - eval_prog with 'a' in environment is not working properly\n")
 end;
 
 
@@ -56,6 +56,6 @@ let
 	val Point(c,d) = Point(7.0,8.0) 
 in
 	if real_equal(a,c) andalso real_equal(b,d)
-	then (print "eval_prog with shadowing 'a' in environment is working properly\n")
-	else (print "eval_prog with shadowing 'a' in environment is not working properly\n")
+	then (print "OK - eval_prog with shadowing 'a' in environment is working properly\n")
+	else (print "ERROR - eval_prog with shadowing 'a' in environment is not working properly\n")
 end;
